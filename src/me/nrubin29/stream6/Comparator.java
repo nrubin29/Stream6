@@ -1,4 +1,4 @@
-package me.nrubin29.lambda6;
+package me.nrubin29.stream6;
 
 /**
  * Interface used for comparing two objects.
