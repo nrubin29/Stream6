@@ -8,10 +8,18 @@ import java.util.List;
 public class Stream<T extends Comparable<? super T>> {
 	
 	private List<T> collection;
+    private ExceptionHandler<MethodAccessException> exceptionHandler;
 
 	protected Stream(List<T> collection) {
 		this.collection = new ArrayList<T>();
 		this.collection.addAll(collection);
+
+        this.exceptionHandler = new ExceptionHandler<MethodAccessException>() {
+            @Override
+            public void handle(MethodAccessException e) {
+                e.printStackTrace();
+            }
+        };
 	}
 
     /**
@@ -32,6 +40,29 @@ public class Stream<T extends Comparable<? super T>> {
 	}
 
     /**
+     * Filter the Stream based on the supplied MethodReference.
+     * @param reference The method with which the Stream should be filtered.
+     * @return The same Stream with the values filtered.
+     */
+    public Stream<T> filter(MethodReference<Boolean> reference) {
+        Collection<T> remove = new ArrayList<T>();
+
+        for (T t : collection) {
+            try {
+                if (!reference.access(t)) {
+                    remove.add(t);
+                }
+            } catch (MethodAccessException e) {
+                if (exceptionHandler != null) exceptionHandler.handle(e);
+            }
+        }
+
+        collection.removeAll(remove);
+
+        return this;
+    }
+
+    /**
      * Map the values of the Stream to a new Stream with the supplied Function.
      * @param function The Function with which the Stream should be mapped.
      * @param <R> The type of the new Stream.
@@ -48,8 +79,28 @@ public class Stream<T extends Comparable<? super T>> {
 	}
 
     /**
+     * Map the values of the Stream to a new Stream with the supplied MethodReference.
+     * @param reference The method with which the Stream should be mapped.
+     * @param <R> The type of the new Stream.
+     * @return A new Stream with the mapped values of the current Stream.
+     */
+    public <R extends Comparable<? super R>> Stream<R> map(MethodReference<R> reference) {
+        List<R> results = new ArrayList<R>();
+
+        for (T t : collection) {
+            try {
+                results.add(reference.access(t));
+            } catch (MethodAccessException e) {
+                if (exceptionHandler != null) exceptionHandler.handle(e);
+            }
+        }
+
+        return StreamSupport.stream(results);
+    }
+
+    /**
      * Consume each value in the Stream.
-     * @param consumer The consumer with which the Stream should be consumed.
+     * @param consumer The Consumer with which the Stream should be consumed.
      */
 	public void forEach(Consumer<? super T> consumer) {
 		for (T t : collection) {
@@ -58,8 +109,22 @@ public class Stream<T extends Comparable<? super T>> {
 	}
 
     /**
+     * Consume each value in the Stream.
+     * @param reference The method with which the Stream should be consumed.
+     */
+    public void forEach(MethodReference reference) {
+        for (T t : collection) {
+            try {
+                reference.access(t);
+            } catch (MethodAccessException e) {
+                if (exceptionHandler != null) exceptionHandler.handle(e);
+            }
+        }
+    }
+
+    /**
      * Return the minimum value in the Stream.
-     * @param comparator The comparator with which the values of the Stream should be compared.
+     * @param comparator The Comparator with which the values of the Stream should be compared.
      * @return The smallest value of the Stream or {@link Optional<T>.empty()} if a value could not be found.
      */
 	public Optional<T> min(Comparator<? super T> comparator) {
@@ -73,8 +138,29 @@ public class Stream<T extends Comparable<? super T>> {
 	}
 
     /**
+     * Return the minimum value in the Stream.
+     * @param reference The method with which the values of the Stream should be compared.
+     * @return The smallest value of the Stream or {@link Optional<T>.empty()} if a value could not be found.
+     */
+    public Optional<T> min(MethodReference<Integer> reference) {
+        T min = null;
+
+        for (T t : collection) {
+            try {
+                if (reference.access(min, t) >= 1){
+                    min = t;
+                }
+            } catch (MethodAccessException e) {
+                if (exceptionHandler != null) exceptionHandler.handle(e);
+            }
+        }
+
+        return min == null ? Optional.<T>empty() : new Optional<T>(min);
+    }
+
+    /**
      * Return the maximum value in the Stream.
-     * @param comparator The comparator with which the values of the Stream should be compared.
+     * @param comparator The Comparator with which the values of the Stream should be compared.
      * @return The largest value of the Stream or {@link Optional<T>.empty()} if a value could not be found.
      */
 	public Optional<T> max(Comparator<? super T> comparator) {
@@ -88,6 +174,27 @@ public class Stream<T extends Comparable<? super T>> {
 	}
 
     /**
+     * Return the maximum value in the Stream.
+     * @param reference The method with which the values of the Stream should be compared.
+     * @return The largest value of the Stream or {@link Optional<T>.empty()} if a value could not be found.
+     */
+    public Optional<T> max(MethodReference<Integer> reference) {
+        T max = null;
+
+        for (T t : collection) {
+            try {
+                if (reference.access(max, t) <= -1) {
+                    max = t;
+                }
+            } catch (MethodAccessException e) {
+                if (exceptionHandler != null) exceptionHandler.handle(e);
+            }
+        }
+
+        return max == null ? Optional.<T>empty() : new Optional<T>(max);
+    }
+
+    /**
      * Sorts the Stream.
      * @return The same Stream with the values sorted.
      */
@@ -96,6 +203,17 @@ public class Stream<T extends Comparable<? super T>> {
 		
 		return this;
 	}
+
+    /**
+     * Sets the ExceptionHandler for the Stream.
+     * @param exceptionHandler The ExceptionHandler for the Stream.
+     * @return The same Stream.
+     */
+    public Stream<T> withExceptionHandler(ExceptionHandler<MethodAccessException> exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+
+        return this;
+    }
 
     /**
      * Return the collection of values used by the Stream.
