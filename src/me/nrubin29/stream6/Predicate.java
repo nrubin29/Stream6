@@ -4,6 +4,7 @@ package me.nrubin29.stream6;
  * Interface used for testing objects.
  * @param <E> The type of object to test.
  */
+@FunctionalInterface
 public interface Predicate<E> {
 
     /**

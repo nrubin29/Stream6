@@ -4,6 +4,7 @@ package me.nrubin29.stream6;
  * Interface used for consuming objects.
  * @param <E> The type of the object to consume.
  */
+@FunctionalInterface
 public interface Consumer<E> {
 
     /**

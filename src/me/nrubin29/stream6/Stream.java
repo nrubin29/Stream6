@@ -1,9 +1,6 @@
 package me.nrubin29.stream6;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Stream<T extends Comparable<? super T>> {
 	
@@ -200,7 +197,7 @@ public class Stream<T extends Comparable<? super T>> {
      */
 	public Stream<T> sort() {
 		Collections.sort(collection);
-		
+
 		return this;
 	}
 

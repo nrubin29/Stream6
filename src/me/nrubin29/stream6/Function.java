@@ -5,6 +5,7 @@ package me.nrubin29.stream6;
  * @param <T> The type of the Object to receive.
  * @param <R> The type of the Object to return.
  */
+@FunctionalInterface
 public interface Function<T, R> {
 
     /**
