@@ -28,13 +28,31 @@ public class Stream<T extends Comparable<? super T>> {
 		Collection<T> remove = new ArrayList<T>();
 		
 		for (T t : collection) {
-			if (!predicate.test(t)) remove.add(t);
+			if (!predicate.test(t)) {
+                remove.add(t);
+            }
 		}
 		
 		collection.removeAll(remove);
 		
 		return this;
 	}
+
+    /**
+     * Filter the Stream based on the supplied Predicate if the condition is met.
+     * @param predicate The Predicate with which the Stream should be filtered.
+     * @param condition The condition which must be met in order to filter.
+     * @return The same Stream with the values filtered if the condition is met, or the same Stream unchanged.
+     */
+    public Stream<T> filterIf(Predicate<? super T> predicate, boolean condition) {
+        if (condition) {
+            return filter(predicate);
+        }
+
+        else {
+            return this;
+        }
+    }
 
     /**
      * Filter the Stream based on the supplied MethodReference.
@@ -57,6 +75,22 @@ public class Stream<T extends Comparable<? super T>> {
         collection.removeAll(remove);
 
         return this;
+    }
+
+    /**
+     * Filter the Stream based on the supplied MethodReference if the condition is met.
+     * @param reference The method with which the Stream should be filtered.
+     * @param condition The condition which must be met in order to filter.
+     * @return The same Stream with the values filtered if the condition is met, or the same Stream unchanged.
+     */
+    public Stream<T> filterIf(MethodReference<Boolean> reference, boolean condition) {
+        if (condition) {
+            return filter(reference);
+        }
+
+        else {
+            return this;
+        }
     }
 
     /**
@@ -87,8 +121,12 @@ public class Stream<T extends Comparable<? super T>> {
         for (T t : collection) {
             try {
                 results.add(reference.access(t));
-            } catch (MethodAccessException e) {
-                if (exceptionHandler != null) exceptionHandler.handle(e);
+            }
+
+            catch (MethodAccessException e) {
+                if (exceptionHandler != null) {
+                    exceptionHandler.handle(e);
+                }
             }
         }
 
@@ -106,16 +144,42 @@ public class Stream<T extends Comparable<? super T>> {
 	}
 
     /**
+     * Consume each value in the Stream if the condition is met.
+     * @param consumer The Consumer with which the Stream should be consumed.
+     * @param condition The condition which must be met in order to consume.
+     */
+    public void forEachIf(Consumer<? super T> consumer, boolean condition) {
+        if (condition) {
+            forEach(consumer);
+        }
+    }
+
+    /**
      * Consume each value in the Stream.
      * @param reference The method with which the Stream should be consumed.
      */
-    public void forEach(MethodReference reference) {
+    public void forEach(MethodReference<Void> reference) {
         for (T t : collection) {
             try {
                 reference.access(t);
-            } catch (MethodAccessException e) {
-                if (exceptionHandler != null) exceptionHandler.handle(e);
             }
+
+            catch (MethodAccessException e) {
+                if (exceptionHandler != null) {
+                    exceptionHandler.handle(e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Consume each value in the Stream if the condition is met.
+     * @param reference The method with which the Stream should be consumed.
+     * @param condition The condition which must be met in order to consume.
+     */
+    public void forEachIf(MethodReference<Void> reference, boolean condition) {
+        if (condition) {
+            forEach(reference);
         }
     }
 
@@ -147,7 +211,9 @@ public class Stream<T extends Comparable<? super T>> {
                 if (reference.access(min, t) >= 1){
                     min = t;
                 }
-            } catch (MethodAccessException e) {
+            }
+
+            catch (MethodAccessException e) {
                 if (exceptionHandler != null) exceptionHandler.handle(e);
             }
         }
@@ -164,7 +230,9 @@ public class Stream<T extends Comparable<? super T>> {
 		T max = null;
 		
 		for (T t : collection) {
-			if (comparator.compare(max, t) <= -1) max = t;
+			if (comparator.compare(max, t) <= -1) {
+                max = t;
+            }
 		}
 		
 		return max == null ? Optional.<T>empty() : new Optional<T>(max);
@@ -183,7 +251,9 @@ public class Stream<T extends Comparable<? super T>> {
                 if (reference.access(max, t) <= -1) {
                     max = t;
                 }
-            } catch (MethodAccessException e) {
+            }
+
+            catch (MethodAccessException e) {
                 if (exceptionHandler != null) exceptionHandler.handle(e);
             }
         }
@@ -200,6 +270,19 @@ public class Stream<T extends Comparable<? super T>> {
 
 		return this;
 	}
+
+    /**
+     * Sort the Stream.
+     * @param condition The condition which must be met in order to sort.
+     * @return The same Stream with the values sorted if the condition is met.
+     */
+    public Stream<T> sortIf(boolean condition) {
+        if (condition) {
+            Collections.sort(collection);
+        }
+
+        return this;
+    }
 
     /**
      * Sets the ExceptionHandler for the Stream.

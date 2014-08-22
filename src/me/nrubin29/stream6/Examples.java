@@ -13,8 +13,7 @@ public class Examples {
         Using Stream6 without method references
          */
 
-		StreamSupport
-		        .stream(strs)
+		StreamSupport.stream(strs)
 		        .filter(new Predicate<String>() {
 			        @Override
 			        public boolean test(String str) {
@@ -36,6 +35,29 @@ public class Examples {
                 })
         ;
 
+        boolean filterI = true, sort = false, print = true;
+        StreamSupport.stream(strs)
+                .filterIf(new Predicate<String>() {
+                    @Override
+                    public boolean test(String str) {
+                        return str.contains("i");
+                    }
+                }, filterI)
+                .map(new Function<String, Integer>() {
+                    @Override
+                    public Integer apply(String str) {
+                        return str.length();
+                    }
+                })
+                .sortIf(sort)
+                .forEachIf(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer i) {
+                        System.out.println(i);
+                    }
+                }, print)
+        ;
+
         /*
         Using Stream6 with method references
          */
@@ -46,6 +68,14 @@ public class Examples {
                 .map(new MethodReference<Integer>(ExampleMethods.class, "map"))
                 .sort()
                 .forEach(new MethodReference<Void>(System.out, "println"))
+        ;
+
+        StreamSupport
+                .stream(strs)
+                .filterIf(new MethodReference<Boolean>(ExampleMethods.class, "filter"), filterI)
+                .map(new MethodReference<Integer>(ExampleMethods.class, "map"))
+                .sortIf(sort)
+                .forEachIf(new MethodReference<Void>(System.out, "println"), print)
         ;
 
 		/*
@@ -73,6 +103,36 @@ public class Examples {
 		for (int i : lengths) {
 			System.out.println(i);
 		}
+
+        /* */
+
+        if (filterI) {
+            remove = new ArrayList<String>();
+
+            for (String str : strs) {
+                if (!str.contains("i")) {
+                    remove.add(str);
+                }
+            }
+
+            strs.removeAll(remove);
+        }
+
+        lengths = new ArrayList<Integer>();
+
+        for (String str : strs) {
+            lengths.add(str.length());
+        }
+
+        if (sort) {
+            Collections.sort(lengths);
+        }
+
+        if (print) {
+            for (int i : lengths) {
+                System.out.println(i);
+            }
+        }
 	}
 
     public static class ExampleMethods {
